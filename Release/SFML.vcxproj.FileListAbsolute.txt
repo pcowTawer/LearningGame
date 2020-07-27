@@ -1,0 +1,2 @@
+E:\Обучение\Программирование+Робототехника\c++\MyProject\SFML\Release\SFML.exe
+E:\Learning\Programming+robots\c++\MyProject\SFML\Release\SFML.exe

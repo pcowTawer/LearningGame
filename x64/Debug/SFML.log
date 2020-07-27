@@ -1,0 +1,6 @@
+﻿  main.cpp
+E:\Learning\Programming+robots\c++\MyProject\SFML\main.cpp(11,1): warning C4010: однострочный комментарий содержит знак объединения строк
+E:\Learning\Programming+robots\c++\MyProject\SFML\main.cpp(18,32): warning C4305: инициализация: усечение из "double" в "float"
+E:\Learning\Programming+robots\c++\MyProject\SFML\main.cpp(19,40): warning C4305: инициализация: усечение из "double" в "float"
+E:\Learning\Programming+robots\c++\MyProject\SFML\main.cpp(25,20): warning C4244: инициализация: преобразование "sf::Int64" в "float", возможна потеря данных
+  SFML.vcxproj -> E:\Learning\Programming+robots\c++\MyProject\SFML\x64\Debug\SFML.exe

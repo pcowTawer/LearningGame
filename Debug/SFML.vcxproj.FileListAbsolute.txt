@@ -1,0 +1,2 @@
+E:\Обучение\Программирование+Робототехника\c++\MyProject\SFML\Debug\SFML.exe
+E:\Обучение\Программирование+Робототехника\c++\MyProject\SFML\Debug\SFML.pdb
