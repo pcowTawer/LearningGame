@@ -1,6 +1,13 @@
 ﻿  main.cpp
-E:\Learning\Programming+robots\c++\MyProject\SFML\main.cpp(11,1): warning C4010: однострочный комментарий содержит знак объединения строк
-E:\Learning\Programming+robots\c++\MyProject\SFML\main.cpp(18,32): warning C4305: инициализация: усечение из "double" в "float"
-E:\Learning\Programming+robots\c++\MyProject\SFML\main.cpp(19,40): warning C4305: инициализация: усечение из "double" в "float"
-E:\Learning\Programming+robots\c++\MyProject\SFML\main.cpp(25,20): warning C4244: инициализация: преобразование "sf::Int64" в "float", возможна потеря данных
-  SFML.vcxproj -> E:\Learning\Programming+robots\c++\MyProject\SFML\x64\Debug\SFML.exe
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(10,40): warning C4305: инициализация: усечение из "double" в "float"
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(36,32): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(40,45): warning C4244: =: преобразование "int" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(80,20): warning C4244: инициализация: преобразование "sf::Int64" в "float", возможна потеря данных
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(90,30): warning C4305: +=: усечение из "double" в "float"
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(94,29): warning C4305: +=: усечение из "double" в "float"
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(99,49): warning C4305: =: усечение из "double" в "float"
+  SFML.vcxproj -> E:\Learning\Programming+robots\c++\MyProject\Traveller\x64\Debug\SFML.exe
