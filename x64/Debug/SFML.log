@@ -1,13 +1,30 @@
 ﻿  main.cpp
-E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(10,40): warning C4305: инициализация: усечение из "double" в "float"
-E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(36,32): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(40,45): warning C4244: =: преобразование "int" в "T", возможна потеря данных
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(88,1): warning C4010: однострочный комментарий содержит знак объединения строк
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(97,1): warning C4010: однострочный комментарий содержит знак объединения строк
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(30,40): warning C4305: инициализация: усечение из "double" в "float"
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(49,20): warning C4244: инициализация: преобразование "T" в "int", возможна потеря данных
           with
           [
               T=float
           ]
-E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(80,20): warning C4244: инициализация: преобразование "sf::Int64" в "float", возможна потеря данных
-E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(90,30): warning C4305: +=: усечение из "double" в "float"
-E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(94,29): warning C4305: +=: усечение из "double" в "float"
-E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(99,49): warning C4305: =: усечение из "double" в "float"
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(50,24): warning C4244: инициализация: преобразование "T" в "int", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(60,49): warning C4244: =: преобразование "int" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(68,48): warning C4244: =: преобразование "int" в "T", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(117,32): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(181,20): warning C4244: инициализация: преобразование "sf::Int64" в "float", возможна потеря данных
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(195,34): warning C4305: +=: усечение из "double" в "float"
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(199,33): warning C4305: +=: усечение из "double" в "float"
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(207,53): warning C4305: =: усечение из "double" в "float"
   SFML.vcxproj -> E:\Learning\Programming+robots\c++\MyProject\Traveller\x64\Debug\SFML.exe
