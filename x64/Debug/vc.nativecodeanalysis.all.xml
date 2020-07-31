@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?><DEFECTS><DEFECT>
+    <SFA>
+      <FILEPATH>E:\Learning\Programming+robots\c++\MyProject\Traveller\</FILEPATH>
+      <FILENAME>main.cpp</FILENAME>
+      <LINE>34</LINE>
+      <COLUMN>9</COLUMN>
+    </SFA>
+    <DEFECTCODE>26812</DEFECTCODE>
+    <DESCRIPTION>Тип перечисления "Player::Direction" не входит в область. Старайтесь использовать "enum class" вместо "enum" (Enum.3).</DESCRIPTION>
+    <FUNCTION>Player::Colision</FUNCTION>
+    <DECORATED>?Colision@Player@@AEAAXW4Direction@1@@Z</DECORATED>
+    <FUNCLINE>34</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT></DEFECTS>
