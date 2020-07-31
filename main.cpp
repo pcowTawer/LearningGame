@@ -2,33 +2,41 @@
 using namespace sf;// Так как мы работаем с библиотекой sfml, нам будет легче не обращаться каждый раз к 
                    //определенному классу, так что используем пространство имен sf
 
-const int H = 11;   //Высота карты
-const int W = 40;   //Ширина карты
-const int tileSize = 32;
-float offsetX = 0, offsetY = 0; //Переменные отвечающие за смещение камеры
+const int tileSize = 16;
+const int characterSizeX = 32;
+const int characterSizeY = 32;
 
-std::string TileMap[H] = {
+double offsetX = 0, offsetY = 0; //Переменные отвечающие за смещение камеры
+
+std::string TileMap[] =                             //Карта, закодированная символами
+{
     "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-    "B                                B    B",
-    "B                                B    B",
-    "B                                B    B",
-    "B                                B    B",
-    "B                            BBBBB    B",
-    "B                                B    B",
-    "B          000           BB      B    B",
-    "B                        BB           B",
-    "B                        BB           B",
-    "BBBBBBB   BBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "B             C--                B0000B",
+    "B             ---                B0000B",
+    "B      C--               C--     B0000B",
+    "B      ---               ---     B   BB",
+    "B                     B         BB    B",
+    "B             B                  BB   B",
+    "B       B                   BB   B   BB",
+    "B  S                  B0000 BB        B",
+    "B     BP              B0000 BBg-  G   B",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+
     
 };
 
-
+const int H = sizeof(TileMap)/sizeof(TileMap[0]);           //Высота карты
+const int W = sizeof(TileMap[0]) / sizeof(TileMap[0][0]);   //Ширина карты
 
 class Player // Класс игрока
 {
     FloatRect rect;                             // Прямоугольник, задающий позицию картинки sprite
-    float frameChangeVelosity = 0.00001;        // Скорость смены кадра анимации персонажа
-    float currentFrame;                         // Переменная считающая кадр который будет в анимации персонажа
+    double frameChangeVelosity = 0.00001;        // Скорость смены кадра анимации персонажа
+    double currentFrame;                         // Переменная считающая кадр который будет в анимации персонажа
     enum Direction { LEFT, RIGHT, UP, DOWN };   // Перечисление типа Направление
     Direction lastLookDir;                      // Куда последний раз смотрел персонаж
 
@@ -51,7 +59,7 @@ class Player // Класс игрока
             {
                 if (i < H && j < W)
                 {
-                    if (TileMap[i][j] == 'B')
+                    if (TileMap[i][j] == 'B' || TileMap[i][j] == 'P' || TileMap[i][j] == '_')
                     {
 
                         if (dx > 0 && (axisDir == Direction::LEFT || axisDir == Direction::RIGHT))
@@ -75,6 +83,16 @@ class Player // Класс игрока
                         TileMap[i][j] = ' ';
                     }
                     
+                    if (TileMap[i][j] == 'X')
+                    {
+                        for (int i = 0; i < H; i++)
+                        {
+                            for (int j = 0; j < W; j++)
+                            {
+                                if (TileMap[i][j] == 'S') { rect.top = i * tileSize; rect.left = j * tileSize; offsetX = 0; offsetY = 0; dx = 0; dy = 0; }
+                            }
+                        }
+                    }
                 }
             }
         
@@ -82,7 +100,7 @@ class Player // Класс игрока
 
 
 public: 
-    float dx, dy;                                    // Скорость по двум осям          
+    double dx, dy;                                    // Скорость по двум осям          
     bool onGround;                                   // Ответ на вопрос: На земле ли мы?
     Sprite sprite;                                   // Sprite, образованный из текстуры и прямоугольника,\
                                                         который как бы высекает из текстуры определенную картинку
@@ -90,20 +108,27 @@ public:
 
     Player(Texture& image)                           //Класс будет принимать параметром текстуру
     {
-        sprite.setTexture(image);                    //Установит эту текстуру, как текстуру спрайта
-        sprite.setTextureRect(IntRect(0, 0, 32, 32));// И вырежет из нее определенную часть
+        sprite.setTexture(image);                                           //Установит эту текстуру, как текстуру спрайта
+        sprite.setTextureRect(IntRect(0, 0, characterSizeX, characterSizeY));// И вырежет из нее определенную часть
 
-        rect = FloatRect(32, (H-2)*32, 32, 32);      // Здесь я указываю координаты изначального\
+        rect = FloatRect(32, (H-9)*32, 32, 32);      // Здесь я указываю координаты изначального\
                                                         спавна первыми 2-мя параметрами
         
 
         lastLookDir = Direction::RIGHT;             //Изначальное направление взгляда
+        for (int i = 0; i < H; i++)
+        {
+            for (int j = 0; j < W; j++)
+            {
+                if (TileMap[i][j] == 'S') { rect.top = i * tileSize; rect.left = j * tileSize; offsetX = 0; offsetY = 0; }
+            }
+        }
         onGround = false;
         dx = dy = 0;
         currentFrame = 0;
     }
 
-    void update(float time)
+    void update(double time)
     {
 
         rect.left += dx * time;                     // rect.left - позиция sprite в окне по оси ox
@@ -129,13 +154,13 @@ public:
         Colision(Direction::DOWN);
 
         currentFrame += frameChangeVelosity * time; // Двигаясь по спрайт листу мы меняем кадры в зависимости от скорости персонажа
-        if (currentFrame > 8) currentFrame -= 8;
+        if (currentFrame > 4) currentFrame -= 4;
 
         if (dx == 0)                                // В зависимости от направления скорости по OX изменяем анимацию         
             switch (lastLookDir) 
             {                                                       
-                case Direction::LEFT:  sprite.setTextureRect(IntRect(32, 0, -32, 32)); break; 
-                case Direction::RIGHT: sprite.setTextureRect(IntRect(0, 0, 32, 32)); break;
+                case Direction::LEFT:  sprite.setTextureRect(IntRect(characterSizeX , characterSizeY , -characterSizeX, characterSizeY)); break;
+                case Direction::RIGHT: sprite.setTextureRect(IntRect(characterSizeX , characterSizeY , characterSizeX, characterSizeY)); break;
                     // Немного об IntRect
                     // 1 и 2 параметр - X и Y координаты ЛЕВОГО верхнего угла, с которого начнется считывание пикселей текстуры
                     // 3 и 4 параметр - Насколько далеко, и в каком направлении пиксели будут считываться по OX(3 параметр) и OY(4 параметр)
@@ -145,82 +170,241 @@ public:
             }
         if (dx > 0) 
         {
-            sprite.setTextureRect(IntRect(32 * int(currentFrame), 32, 32, 32));
+            sprite.setTextureRect(IntRect(characterSizeX * int(currentFrame), characterSizeY, characterSizeX, characterSizeY));
             lastLookDir = Direction::RIGHT;
         }
         if (dx < 0)
         {
-            sprite.setTextureRect(IntRect(32 + 32 * int(currentFrame), 32, -32, 32));
+            sprite.setTextureRect(IntRect(characterSizeX * (int(currentFrame) + 1), characterSizeY, -characterSizeX, characterSizeY));
             lastLookDir = Direction::LEFT;;
         }
 
-        if (rect.top > 400) { rect.top = (H - 2) * 32; rect.left = 32; }
         sprite.setPosition(rect.left - offsetX, rect.top - offsetY);
 
         dx = 0;
-        if (rect.left > 300 && rect.left < (W-1)*32-300) offsetX = rect.left - 600/2;
+        if (rect.left > 300 && rect.left < (W-1)*tileSize-300) offsetX = rect.left - 600/2;
         if (rect.top > 175) offsetY = rect.top  - 175;
     }
 };
 
-
-
 int main()
 {
-    bool focus = 1;
     sf::RenderWindow window(sf::VideoMode(600, 350), "SFML works!");
 
-    Texture t;
-    t.loadFromFile("man.png");
-    Player man(t);
+
+    Texture charactersT;                    //Установка текстур
+    Texture sheetT;
+    charactersT.loadFromFile("characters.png");
+    sheetT.loadFromFile("sheet.png");
+
+    Sprite coin;
+    Texture coinT;
+    coinT.loadFromFile("Coin.png");
+    coin.setTexture(coinT);
+
+    Sprite tile;
+    tile.setTexture(sheetT);
+
+    Player man(charactersT);
     Clock timer;    //Этот таймер будет считать время, между тактами работы процессора
-    RectangleShape rectangle(Vector2f(32, 32));
 
-    while (window.isOpen()) 
+
+
+
+    while (window.isOpen())
     {
-        float time = timer.getElapsedTime().asMicroseconds();
-        timer.restart();                                    
+        double time = timer.getElapsedTime().asMicroseconds();
         Event event;
-
+        timer.restart();
         if (window.pollEvent(event))       // window.pollEvent(event) ожидает событие 
-        {            
+        {
             if (event.type == Event::Closed) window.close();
         }
 
-
         if (window.hasFocus())
         {
-            if (Keyboard::isKeyPressed(Keyboard::Left)) // В зависимости от нажатой кнопки мы сообщаем скорость персонажу
-            {
-                man.dx += -0.0002;
-            }
-            if (Keyboard::isKeyPressed(Keyboard::Right))
-            {
-                man.dx += 0.0002;
-            }
-            if (Keyboard::isKeyPressed(Keyboard::Right) && Keyboard::isKeyPressed(Keyboard::Left))
-            {
-                man.dx = 0;
-            }
-            if (Keyboard::isKeyPressed(Keyboard::Up) || Keyboard::isKeyPressed(Keyboard::Space))
-            {
-                if (man.onGround) { man.dy = -0.0005; man.onGround = false; }
-            }
+            timer.restart();
 
+            //Обработка нажатий 
+            {
+                if (Keyboard::isKeyPressed(Keyboard::Left)) // В зависимости от нажатой кнопки мы сообщаем скорость персонажу
+                {
+                    man.dx = -0.0002;
+                }
+                if (Keyboard::isKeyPressed(Keyboard::Right))
+                {
+                    man.dx = 0.0002;
+                }
+                if (Keyboard::isKeyPressed(Keyboard::Right) && Keyboard::isKeyPressed(Keyboard::Left))
+                {
+                    man.dx = 0;
+                }
+                if (Keyboard::isKeyPressed(Keyboard::Up) || Keyboard::isKeyPressed(Keyboard::Space))
+                {
+                    if (man.onGround) { man.dy = -0.0005; man.onGround = false; }
+                }
+            }
             man.update(time);
 
             window.clear();  //Очищаем окно
 
-
-            for (int i = 0; i < H; i++) //Здесь обновляется карта
+            //Здесь обновляется карта
+            for (int i = 0; i < H; i++)
             {
+
                 for (int j = 0; j < W - 1; j++)
                 {
-                    if (TileMap[i][j] == 'B')   rectangle.setFillColor(Color::White);
-                    if (TileMap[i][j] == '0')   rectangle.setFillColor(Color::Green);
-                    if (TileMap[i][j] == ' ')   continue;
-                    rectangle.setPosition(j * 32 - offsetX, i * 32 - offsetY);
-                    window.draw(rectangle);
+
+                    if (TileMap[i][j] == '-')   continue;
+                    if (TileMap[i][j] == '_')   continue;
+                    if (TileMap[i][j] == 'X')   tile.setTextureRect(IntRect(34 * 10, 34 * 2, tileSize, tileSize));
+                    if (TileMap[i][j] == 'S')
+                    {
+                        tile.setTextureRect(IntRect(34 * 3, 34 * 4, tileSize, tileSize));
+                        tile.setPosition(tileSize * j - offsetX, tileSize * i - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i - 1][j] = '-';
+                        tile.setTextureRect(IntRect(34 * 3, 34 * 3, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j)-offsetX, tileSize * (i - 1) - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i - 1][j - 1] = '-';
+                        tile.setTextureRect(IntRect(34 * 2, 34 * 3, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j - 1) - offsetX, tileSize * (i - 1) - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i - 2][j] = '-';
+                        tile.setTextureRect(IntRect(34 * 3, 34 * 2, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j)-offsetX, tileSize * (i - 2) - offsetY);
+                        window.draw(tile);
+
+                        continue;
+                    };
+                    if (TileMap[i][j] == '0')
+                    {
+                        coin.setPosition(tileSize * j - offsetX, tileSize * i - offsetY);
+                        window.draw(coin);
+                        continue;
+                    };
+                    if (TileMap[i][j] == 'B') tile.setTextureRect(IntRect(0, 0, tileSize, tileSize));
+                    if (TileMap[i][j] == ' ') tile.setTextureRect(IntRect(34 * 12, 34 * 6, tileSize, tileSize));
+                    if (TileMap[i][j] == 'G')
+                    {
+                        TileMap[i][j - 1] = '-';
+                        tile.setTextureRect(IntRect(34 * 2, 0, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j - 1) - offsetX, tileSize * i - offsetY);
+                        window.draw(tile);
+
+                        tile.setTextureRect(IntRect(34 * 3, 0, tileSize, tileSize));
+                        tile.setPosition(tileSize * j - offsetX, tileSize * i - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i][j + 1] = '-';
+                        tile.setTextureRect(IntRect(34 * 4, 0, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j + 1) - offsetX, tileSize * i - offsetY);
+                        window.draw(tile);
+
+                        continue;
+                    }   // Большая трава
+                    if (TileMap[i][j] == 'g')
+                    {
+
+                        tile.setTextureRect(IntRect(34 * 2, 0, tileSize, tileSize));
+                        tile.setPosition(tileSize * j - offsetX, tileSize * i - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i][j + 1] = '-';
+                        tile.setTextureRect(IntRect(34 * 4, 0, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j + 1) - offsetX, tileSize * i - offsetY);
+                        window.draw(tile);
+
+                        continue;
+                    }   // Малая трава
+                    if (TileMap[i][j] == 'C')
+                    {
+
+                        tile.setTextureRect(IntRect(0, 34 * 7, tileSize, tileSize));
+                        tile.setPosition(tileSize * j - offsetX, tileSize * i - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i + 1][j] = '-';
+                        tile.setTextureRect(IntRect(0, 34 * 8, tileSize, tileSize));
+                        tile.setPosition(tileSize * j - offsetX, tileSize * (i + 1) - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i][j + 1] = '-';
+                        tile.setTextureRect(IntRect(34, 34 * 7, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j + 1) - offsetX, tileSize * i - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i + 1][j + 1] = '-';
+                        tile.setTextureRect(IntRect(34, 34 * 8, tileSize, tileSize));
+                        tile.setPosition(tileSize* (j + 1) - offsetX, tileSize* (i + 1) - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i][j + 2] = '-';
+                        tile.setTextureRect(IntRect( 34 * 2, 34 * 7, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j + 2) - offsetX, tileSize * (i)-offsetY);
+                        window.draw(tile);
+
+                        TileMap[i + 1][j + 2] = '-';
+                        tile.setTextureRect(IntRect( 34 * 2, 34 * 8, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j + 2) - offsetX, tileSize * (i + 1) - offsetY);
+                        window.draw(tile);
+
+                        continue;
+                    }   // Облако
+                    if (TileMap[i][j] == 'P')
+                    {
+                        
+                        tile.setTextureRect(IntRect(0, 34 * 3, tileSize, tileSize));
+                        tile.setPosition(tileSize * (j) - offsetX, tileSize * (i) - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i - 1][j] = '_';
+                        tile.setTextureRect(IntRect(0, 34 * 2, tileSize, tileSize));
+                        tile.setPosition(tileSize* (j)-offsetX, tileSize* (i - 1)-offsetY);
+                        window.draw(tile);
+
+
+                        TileMap[i][j + 1] = '_';
+                        tile.setTextureRect(IntRect(34, 34 * 3, tileSize, tileSize));
+                        tile.setPosition(tileSize* (j + 1)-offsetX, tileSize* (i) - offsetY);
+                        window.draw(tile);
+
+
+                        TileMap[i - 1][j + 1] = '_';
+                        tile.setTextureRect(IntRect(34 , 34 * 2, tileSize, tileSize));
+                        tile.setPosition(tileSize* (j + 1)-offsetX, tileSize* (i - 1) - offsetY);
+                        window.draw(tile);
+
+                        continue;
+                    }
+                    if (TileMap[i][j] == 'H')
+                    {
+                        tile.setTextureRect(IntRect(34 * 1, 34 * 1, tileSize, tileSize));
+                        tile.setPosition(tileSize* (j)-offsetX, tileSize* (i)-offsetY);
+                        window.draw(tile);
+
+                        TileMap[i - 1][j] = '-';
+                        tile.setTextureRect(IntRect(34 * 1, 0 , tileSize, tileSize));
+                        tile.setPosition(tileSize * (j)-offsetX, tileSize * (i - 1)-offsetY);
+                        window.draw(tile);
+
+                        TileMap[i][j - 1] = '-';
+                        tile.setTextureRect(IntRect(0 , 34 * 1, tileSize, tileSize));
+                        tile.setPosition(tileSize* (j - 1)-offsetX, tileSize* (i) - offsetY);
+                        window.draw(tile);
+
+                        TileMap[i][j + 1] = '-';
+                        tile.setTextureRect(IntRect(34 * 2, 34 * 1, tileSize, tileSize));
+                        tile.setPosition(tileSize* (j + 1) - offsetX, tileSize* (i) - offsetY);
+                        window.draw(tile);
+                        continue;
+                    }   
+                    tile.setPosition(j * tileSize - offsetX, i * tileSize - offsetY);
+                    window.draw(tile);
                 }
 
             }
@@ -229,7 +413,7 @@ int main()
 
         }
 
-        
+
     }
 
     return 0;
