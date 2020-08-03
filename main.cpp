@@ -1,45 +1,76 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
+#include <math.h>
 using namespace sf;// Так как мы работаем с библиотекой sfml, нам будет легче не обращаться каждый раз к 
                    //определенному классу, так что используем пространство имен sf
 
-const int tileSize = 16;
-const int characterSizeX = 32;
-const int characterSizeY = 32;
+const int tileSize = 32;
 
 double offsetX = 0, offsetY = 0; //Переменные отвечающие за смещение камеры
 
+SoundBuffer coinGet;
+Sound coinGetSound(coinGet);
+SoundBuffer jump;
+Sound jumpSound(jump);
+
 std::string TileMap[] =                             //Карта, закодированная символами
 {
-    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-    "B             C--                B0000B",
-    "B             ---                B0000B",
-    "B      C--               C--     B0000B",
-    "B      ---               ---     B   BB",
-    "B                     B         BB    B",
-    "B             B                  BB   B",
-    "B       B                   BB   B   BB",
-    "B  S                  B0000 BB        B",
-    "B     BP              B0000 BBg-  G   B",
-    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "                             C   B ",
+    "  C                              B ",
+    "B      00000  0   0  C           B ",
+    "B      0     000 000    B        B ",
+    "B      00000  0   0          B000B ",
+    "B   G           g B          B000B ",
+    "BBBBBBBBBBBBBBBBBBB          BBBBB ",
+    "B00             000    B     B     ",
+    "B                           BB     ",
+    "B  B         B   B   B       B     ",
+    "B               00           B     ",
+    "B       B                    B     ",
+    "B                       000  B     ",
+    "Bg    BP XXXXXXXBBXXXBB000H  B     ",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     ",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     ",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     ",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     ",
+    "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     ",
 
     
 };
-
-const int H = sizeof(TileMap)/sizeof(TileMap[0]);           //Высота карты
-const int W = sizeof(TileMap[0]) / sizeof(TileMap[0][0]);   //Ширина карты
+int H;
+int W;
 
 class Player // Класс игрока
 {
-    FloatRect rect;                             // Прямоугольник, задающий позицию картинки sprite
     double frameChangeVelosity = 0.00001;        // Скорость смены кадра анимации персонажа
     double currentFrame;                         // Переменная считающая кадр который будет в анимации персонажа
     enum Direction { LEFT, RIGHT, UP, DOWN };   // Перечисление типа Направление
     Direction lastLookDir;                      // Куда последний раз смотрел персонаж
+    const int characterSizeX = 32;
+    const int characterSizeY = 32;
+    const int characterNum = 0;
+    void SetupCamera()
+    {
+        if (!(rect.left > 300))
+        {
+            offsetX = 0;
+        }
+        else
+        {
+            if (!(rect.left < (W - 6) * tileSize - 300))
+            {
+                offsetX = (W - 6) * tileSize - 600;
+            }
+            else
+                offsetX = rect.left - 600 / 2;
+        }
+        if (rect.top > 175)
+            offsetY = rect.top - 175;
+        else
+            offsetY = 0;
 
+
+    }
     void Colision(Direction axisDir)            // Функция обработки коллизий, для разных координатных осей, 
                                                     // параметр принимает значение направления оси координат, и
                                                 // В зависимости от нее, считает коллизию либо по OX, либо OY
@@ -57,7 +88,7 @@ class Player // Класс игрока
         for (int i = rect.top / tileSize; i < (rect.top + rect.height) / tileSize; i++)         // Благодаря такой организации for, мы проверяем лишь
             for (int j = rect.left / tileSize; j < (rect.left + rect.width) / tileSize; j++)    // те плитки карты, на которые попал sprite 
             {
-                if (i < H && j < W)
+                if (i < H && j < W + 4 && i > -1 && j > -1)
                 {
                     if (TileMap[i][j] == 'B' || TileMap[i][j] == 'P' || TileMap[i][j] == '_')
                     {
@@ -78,54 +109,66 @@ class Player // Класс игрока
 
                     }
 
-                    if (TileMap[i][j] == '0') 
+                    if (TileMap[i][j] == '0')
                     {
                         TileMap[i][j] = ' ';
+                        coinGetSound.play();
                     }
-                    
+
                     if (TileMap[i][j] == 'X')
                     {
                         for (int i = 0; i < H; i++)
                         {
                             for (int j = 0; j < W; j++)
                             {
-                                if (TileMap[i][j] == 'S') { rect.top = i * tileSize; rect.left = j * tileSize; offsetX = 0; offsetY = 0; dx = 0; dy = 0; }
+                                if (TileMap[i][j] == 'S')
+                                {
+                                    rect.top = i * tileSize;
+                                    rect.left = j * tileSize;
+                                    SetupCamera();
+                                    dx = 0;
+                                    dy = 0;
+                                }
                             }
                         }
                     }
                 }
             }
-        
+
     }
 
 
-public: 
+public:
+    FloatRect rect;                                    // Прямоугольник, задающий позицию картинки sprite
     double dx, dy;                                    // Скорость по двум осям          
     bool onGround;                                   // Ответ на вопрос: На земле ли мы?
-    Sprite sprite;                                   // Sprite, образованный из текстуры и прямоугольника,\
+    Sprite sprite;                                  // Sprite, образованный из текстуры и прямоугольника,\
                                                         который как бы высекает из текстуры определенную картинку
-    
 
-    Player(Texture& image)                           //Класс будет принимать параметром текстуру
+    void Respawn()
     {
-        sprite.setTexture(image);                                           //Установит эту текстуру, как текстуру спрайта
-        sprite.setTextureRect(IntRect(0, 0, characterSizeX, characterSizeY));// И вырежет из нее определенную часть
-
-        rect = FloatRect(32, (H-9)*32, 32, 32);      // Здесь я указываю координаты изначального\
+        rect = FloatRect(32, (H - 9) * 32, 32, 32);      // Здесь я указываю координаты изначального\
                                                         спавна первыми 2-мя параметрами
-        
+
 
         lastLookDir = Direction::RIGHT;             //Изначальное направление взгляда
         for (int i = 0; i < H; i++)
         {
             for (int j = 0; j < W; j++)
             {
-                if (TileMap[i][j] == 'S') { rect.top = i * tileSize; rect.left = j * tileSize; offsetX = 0; offsetY = 0; }
+                if (TileMap[i][j] == 'S') { rect.top = i * tileSize; rect.left = j * tileSize; SetupCamera(); }
             }
         }
         onGround = false;
         dx = dy = 0;
         currentFrame = 0;
+    }
+
+    Player(Texture& image)                           //Класс будет принимать параметром текстуру
+    {
+        sprite.setTexture(image);                                           //Установит эту текстуру, как текстуру спрайта
+        sprite.setTextureRect(IntRect(0, 0, characterSizeX, characterSizeY));// И вырежет из нее определенную часть
+        Respawn();
     }
 
     void update(double time)
@@ -137,7 +180,7 @@ public:
                                                     // Мы должжны сразу проверить Colision, по этой оси
                                                     // Иначе, если мы изменим позицию персонажа по всем осям, он
                                                     // Может попасть в угол, и тогда, функция может не сработать
-                                                    
+
 
         if (!onGround) dy = dy + 0.000000001 * time; // Ускоряемся со временем по направлению к земле 
                                                      // Положительный dx - скорость направо, положительный dy - cкорость вниз
@@ -157,42 +200,213 @@ public:
         if (currentFrame > 4) currentFrame -= 4;
 
         if (dx == 0)                                // В зависимости от направления скорости по OX изменяем анимацию         
-            switch (lastLookDir) 
-            {                                                       
-                case Direction::LEFT:  sprite.setTextureRect(IntRect(characterSizeX , characterSizeY , -characterSizeX, characterSizeY)); break;
-                case Direction::RIGHT: sprite.setTextureRect(IntRect(characterSizeX , characterSizeY , characterSizeX, characterSizeY)); break;
-                    // Немного об IntRect
-                    // 1 и 2 параметр - X и Y координаты ЛЕВОГО верхнего угла, с которого начнется считывание пикселей текстуры
-                    // 3 и 4 параметр - Насколько далеко, и в каком направлении пиксели будут считываться по OX(3 параметр) и OY(4 параметр)
-                    // 3 параметр положительный - Вправо, отрицательный Влево
-                    // 4 параметр положительный - Вниз, отрицательный Вверх
+            switch (lastLookDir)
+            {
+            case Direction::LEFT:  sprite.setTextureRect(IntRect(characterSizeX, characterNum * characterSizeY, -characterSizeX, characterSizeY)); break;
+            case Direction::RIGHT: sprite.setTextureRect(IntRect(characterSizeX, characterNum * characterSizeY, characterSizeX, characterSizeY)); break;
+                // Немного об IntRect
+                // 1 и 2 параметр - X и Y координаты ЛЕВОГО верхнего угла, с которого начнется считывание пикселей текстуры
+                // 3 и 4 параметр - Насколько далеко, и в каком направлении пиксели будут считываться по OX(3 параметр) и OY(4 параметр)
+                // 3 параметр положительный - Вправо, отрицательный Влево
+                // 4 параметр положительный - Вниз, отрицательный Вверх
 
             }
-        if (dx > 0) 
+        if (dx > 0)
         {
-            sprite.setTextureRect(IntRect(characterSizeX * int(currentFrame), characterSizeY, characterSizeX, characterSizeY));
+            sprite.setTextureRect(IntRect(characterSizeX * int(currentFrame), characterNum * characterSizeY, characterSizeX, characterSizeY));
             lastLookDir = Direction::RIGHT;
         }
         if (dx < 0)
         {
-            sprite.setTextureRect(IntRect(characterSizeX * (int(currentFrame) + 1), characterSizeY, -characterSizeX, characterSizeY));
+            sprite.setTextureRect(IntRect(characterSizeX * (int(currentFrame) + 1), characterNum * characterSizeY, -characterSizeX, characterSizeY));
             lastLookDir = Direction::LEFT;;
         }
 
         sprite.setPosition(rect.left - offsetX, rect.top - offsetY);
 
         dx = 0;
-        if (rect.left > 300 && rect.left < (W-1)*tileSize-300) offsetX = rect.left - 600/2;
-        if (rect.top > 175) offsetY = rect.top  - 175;
+        SetupCamera();
+    }
+};
+
+class BadPlayer // Класс игрока
+{
+
+    double frameChangeVelosity = 0.00001;        // Скорость смены кадра анимации персонажа
+    double currentFrame;                         // Переменная считающая кадр который будет в анимации персонажа
+    enum Direction { LEFT, RIGHT, UP, DOWN };   // Перечисление типа Направление
+    Direction lastLookDir;                      // Куда последний раз смотрел персонаж
+    const int characterSizeX = 32;
+    const int characterSizeY = 32;
+    const int characterNum = 3;
+
+    void Colision(Direction axisDir)            // Функция обработки коллизий, для разных координатных осей, 
+                                                    // параметр принимает значение направления оси координат, и
+                                                // В зависимости от нее, считает коллизию либо по OX, либо OY
+    {
+
+        onGround = false;                       // Это нужно, для того, чтобы коллизия не сохраняла значение onGround,
+                                                // а динамически изменяла, т.к если onGround cтанет true, и dy = 0
+                                                // значение onGround так и останется true, тк он менялся бы, только если
+                                                // бы мы прыгнули
+                                                // Такой случай означает, что мы двигались с платформы(или возвышенности)
+                                                // и сошли с нее, но не падаем
+
+
+        // Проверка соприкосновения с картой, построенной на плиточной системе, или на Тайлах
+        for (int i = rect.top / tileSize; i < (rect.top + rect.height) / tileSize; i++)         // Благодаря такой организации for, мы проверяем лишь
+            for (int j = rect.left / tileSize; j < (rect.left + rect.width) / tileSize; j++)    // те плитки карты, на которые попал sprite 
+            {
+                if (i < H && j < W + 4 && i > -1 && j > -1)
+                {
+                    if (TileMap[i][j] == 'B' || TileMap[i][j] == 'P' || TileMap[i][j] == '_')
+                    {
+
+                        if (dx > 0 && (axisDir == Direction::LEFT || axisDir == Direction::RIGHT))
+                        {
+                            dx = dx * -1;
+                            rect.left = j * tileSize - rect.width;
+                            continue;
+                        }
+
+                        if (dx < 0 && (axisDir == Direction::LEFT || axisDir == Direction::RIGHT))
+                        {
+                            dx = dx * -1;
+                            rect.left = (j + 1) * tileSize;
+                            continue;
+                        }
+
+                        if (dy > 0 && (axisDir == Direction::UP || axisDir == Direction::DOWN))
+                        {
+                            rect.top = i * tileSize - rect.height; dy = 0; onGround = true;
+                        }
+                        if (dy < 0 && (axisDir == Direction::UP || axisDir == Direction::DOWN))
+                        {
+                            rect.top = (i + 1) * tileSize; dy = 0;
+                        }
+
+                    }
+
+
+                    if (TileMap[i][j] == 'X') { alive = false; }
+                }
+            }
+
+    }
+
+
+public:
+    FloatRect rect;                                         // Прямоугольник, задающий позицию картинки sprite
+    double dx, dy;                                          // Скорость по двум осям          
+    bool onGround, alive;                                   // Ответ на вопрос: На земле ли мы?
+    Sprite sprite;                                          // Sprite, образованный из текстуры и прямоугольника,\
+                                                                который как бы высекает из текстуры определенную картинку
+
+
+    BadPlayer(Texture& image)                           //Класс будет принимать параметром текстуру
+    {
+        sprite.setTexture(image);                                           //Установит эту текстуру, как текстуру спрайта
+        sprite.setTextureRect(IntRect(0, 0, characterSizeX, characterSizeY));// И вырежет из нее определенную часть
+
+        alive = true;
+        rect = FloatRect(32, (H - 9) * 32, 32, 32);      // Здесь я указываю координаты изначального\
+                                                        спавна первыми 2-мя параметрами
+
+
+        lastLookDir = Direction::RIGHT;             //Изначальное направление взгляда
+        for (int i = 0; i < H; i++)
+        {
+            for (int j = 0; j < W; j++)
+            {
+                if (TileMap[i][j] == 'E') { rect.top = i * tileSize; rect.left = j * tileSize; }
+            }
+        }
+        onGround = false;
+        dx = 0.0001;
+        dy = 0;
+        currentFrame = 0;
+    }
+    BadPlayer(Texture& image, int x, int y)
+    {
+        sprite.setTexture(image);                                           //Установит эту текстуру, как текстуру спрайта
+        sprite.setTextureRect(IntRect(0, 0, characterSizeX, characterSizeY));// И вырежет из нее определенную часть
+
+        alive = true;
+        rect = FloatRect(32, (H - 9) * 32, 32, 32);      // Здесь я указываю координаты изначального\
+                                                        спавна первыми 2-мя параметрами
+
+
+        { rect.top = y * tileSize; rect.left = x * tileSize; }
+
+        onGround = false;
+        dx = 0.0001;
+        dy = 0;
+        currentFrame = 0;
+    }
+    void update(double time)
+    {
+
+        rect.left += dx * time;                     // rect.left - позиция sprite в окне по оси ox
+        Colision(Direction::LEFT);                  // Важно! Как только мы изменяем позицию персонажа
+                                                    // по одной из осей
+                                                    // Мы должжны сразу проверить Colision, по этой оси
+                                                    // Иначе, если мы изменим позицию персонажа по всем осям, он
+                                                    // Может попасть в угол, и тогда, функция может не сработать
+
+
+        if (!onGround) dy = dy + 0.000000001 * time; // Ускоряемся со временем по направлению к земле 
+                                                     // Положительный dx - скорость направо, положительный dy - cкорость вниз
+
+        rect.top += dy * time;                    //Почему мы просто не изменяем позицию, на какое-то значение?
+                                                 //, а пользуемся формулой перемещения из физики?
+                                                // Потому что, изменяя положение таким образом, наш песонаж будет двигаться
+                                               // всегда с одной скоростью на любом компе!
+                                              // Раз скорость обработки компьютеров разная, то
+                                             // и значение в коде будет прибавляться с разной скоростью, НО
+                                            // Раз мы изпользуем время между тактами процессора, то мы избавляемся от 
+                                           // зависимости нашего кода перемещения от компьютера!
+                                               // rect.top - позиция sprite в окне по оси oy
+        Colision(Direction::DOWN);
+
+        currentFrame += frameChangeVelosity * time; // Двигаясь по спрайт листу мы меняем кадры в зависимости от скорости персонажа
+        if (currentFrame > 4) currentFrame -= 4;
+
+        if (dx == 0)                                // В зависимости от направления скорости по OX изменяем анимацию         
+            switch (lastLookDir)
+            {
+            case Direction::LEFT:  sprite.setTextureRect(IntRect(characterSizeX, characterNum * characterSizeY, -characterSizeX, characterSizeY)); break;
+            case Direction::RIGHT: sprite.setTextureRect(IntRect(characterSizeX, characterNum * characterSizeY, characterSizeX, characterSizeY)); break;
+                // Немного об IntRect
+                // 1 и 2 параметр - X и Y координаты ЛЕВОГО верхнего угла, с которого начнется считывание пикселей текстуры
+                // 3 и 4 параметр - Насколько далеко, и в каком направлении пиксели будут считываться по OX(3 параметр) и OY(4 параметр)
+                // 3 параметр положительный - Вправо, отрицательный Влево
+                // 4 параметр положительный - Вниз, отрицательный Вверх
+
+            }
+        if (dx > 0)
+        {
+            sprite.setTextureRect(IntRect(characterSizeX * int(currentFrame), characterNum * characterSizeY, characterSizeX, characterSizeY));
+            lastLookDir = Direction::RIGHT;
+        }
+        if (dx < 0)
+        {
+            sprite.setTextureRect(IntRect(characterSizeX * (int(currentFrame) + 1), characterNum * characterSizeY, -characterSizeX, characterSizeY));
+            lastLookDir = Direction::LEFT;;
+        }
+
+        sprite.setPosition(rect.left - offsetX, rect.top - offsetY);
+
     }
 };
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(600, 350), "SFML works!");
 
+    sf::RenderWindow window(sf::VideoMode(600, 350), "Traveller");
+    H = sizeof(TileMap)/sizeof(TileMap[0]);         //Высота карты
+    W = TileMap[0].size();                          //Ширина карты
 
-    Texture charactersT;                    //Установка текстур
+    Texture charactersT;                            //Установка текстур
     Texture sheetT;
     charactersT.loadFromFile("characters.png");
     sheetT.loadFromFile("sheet.png");
@@ -201,18 +415,33 @@ int main()
     Texture coinT;
     coinT.loadFromFile("Coin.png");
     coin.setTexture(coinT);
-
+    
     Sprite tile;
     tile.setTexture(sheetT);
-
     Player man(charactersT);
+    BadPlayer man1(charactersT, 1 ,0);
+    BadPlayer man2(charactersT, 3 ,0);
+    BadPlayer man3(charactersT, 6 ,0);
+    BadPlayer man4(charactersT, 4 ,0);
+    BadPlayer man5(charactersT, 10 ,0);
     Clock timer;    //Этот таймер будет считать время, между тактами работы процессора
+    Clock musicTimer;
+    
+    Music backMusic;
+    backMusic.openFromFile("backMusic.ogg");
+    backMusic.setVolume(25);
+    backMusic.play();
+    musicTimer.restart();
 
-
-
-
+    coinGet.loadFromFile("CoinSFX.ogg");
+    jump.loadFromFile("JumpSFX.ogg");
     while (window.isOpen())
     {
+        if (musicTimer.getElapsedTime().asSeconds() >= 153)
+        {
+            musicTimer.restart();
+            backMusic.play();
+        }
         double time = timer.getElapsedTime().asMicroseconds();
         Event event;
         timer.restart();
@@ -241,23 +470,70 @@ int main()
                 }
                 if (Keyboard::isKeyPressed(Keyboard::Up) || Keyboard::isKeyPressed(Keyboard::Space))
                 {
-                    if (man.onGround) { man.dy = -0.0005; man.onGround = false; }
+                    if (man.onGround) { man.dy = -0.0005; man.onGround = false; jumpSound.play();}
                 }
             }
             man.update(time);
+            man1.update(time);
+            man2.update(time);
+            man3.update(time);
+            man4.update(time);
+            man5.update(time);
 
+            if (man.rect.intersects(man1.rect))
+            {
+                if (man1.alive)
+                {
+                    if (man.dy > 0) { man1.alive = false; man.dy = -0.0005; }
+                    else man.Respawn();
+                }
+            }
+            if (man.rect.intersects(man2.rect))
+            {
+                if (man2.alive)
+                {
+                    if (man.dy > 0) { man2.alive = false; man.dy = -0.0005; }
+                    else man.Respawn();
+                }
+            }
+            if (man.rect.intersects(man3.rect))
+            {
+                if (man3.alive)
+                {
+                    if (man.dy > 0) { man3.alive = false; man.dy = -0.0005; }
+                    else man.Respawn();
+                }
+            }
+            if (man.rect.intersects(man4.rect))
+            {
+                if (man4.alive)
+                {
+                    if (man.dy > 0) { man4.alive = false; man.dy = -0.0005; }
+                    else man.Respawn();
+                }
+            }
+            if (man.rect.intersects(man5.rect))
+            {
+                if (man5.alive)
+                {
+                    if (man.dy > 0) { man5.alive = false; man.dy = -0.0005; }
+                    else man.Respawn();
+                }
+            }
             window.clear();  //Очищаем окно
+
+            
+            offsetX = floor(offsetX);
+            offsetY = floor(offsetY);
 
             //Здесь обновляется карта
             for (int i = 0; i < H; i++)
             {
-
                 for (int j = 0; j < W - 1; j++)
                 {
-
-                    if (TileMap[i][j] == '-')   continue;
-                    if (TileMap[i][j] == '_')   continue;
-                    if (TileMap[i][j] == 'X')   tile.setTextureRect(IntRect(34 * 10, 34 * 2, tileSize, tileSize));
+                    if (TileMap[i][j] == '-')   continue; else
+                    if (TileMap[i][j] == '_')   continue; else
+                    if (TileMap[i][j] == 'X')   tile.setTextureRect(IntRect(34 * 10, 34 * 2, tileSize, tileSize)); else
                     if (TileMap[i][j] == 'S')
                     {
                         tile.setTextureRect(IntRect(34 * 3, 34 * 4, tileSize, tileSize));
@@ -280,15 +556,14 @@ int main()
                         window.draw(tile);
 
                         continue;
-                    };
+                    } else
                     if (TileMap[i][j] == '0')
                     {
                         coin.setPosition(tileSize * j - offsetX, tileSize * i - offsetY);
                         window.draw(coin);
                         continue;
-                    };
-                    if (TileMap[i][j] == 'B') tile.setTextureRect(IntRect(0, 0, tileSize, tileSize));
-                    if (TileMap[i][j] == ' ') tile.setTextureRect(IntRect(34 * 12, 34 * 6, tileSize, tileSize));
+                    } else
+                    if (TileMap[i][j] == 'B') tile.setTextureRect(IntRect(0, 0, tileSize, tileSize)); else
                     if (TileMap[i][j] == 'G')
                     {
                         TileMap[i][j - 1] = '-';
@@ -306,7 +581,7 @@ int main()
                         window.draw(tile);
 
                         continue;
-                    }   // Большая трава
+                    } else
                     if (TileMap[i][j] == 'g')
                     {
 
@@ -320,7 +595,7 @@ int main()
                         window.draw(tile);
 
                         continue;
-                    }   // Малая трава
+                    } else
                     if (TileMap[i][j] == 'C')
                     {
 
@@ -354,7 +629,7 @@ int main()
                         window.draw(tile);
 
                         continue;
-                    }   // Облако
+                    } else
                     if (TileMap[i][j] == 'P')
                     {
                         
@@ -380,7 +655,7 @@ int main()
                         window.draw(tile);
 
                         continue;
-                    }
+                    } else
                     if (TileMap[i][j] == 'H')
                     {
                         tile.setTextureRect(IntRect(34 * 1, 34 * 1, tileSize, tileSize));
@@ -402,13 +677,19 @@ int main()
                         tile.setPosition(tileSize* (j + 1) - offsetX, tileSize* (i) - offsetY);
                         window.draw(tile);
                         continue;
-                    }   
+                    } else  
+                        tile.setTextureRect(IntRect(34 * 12, 34 * 6, tileSize, tileSize));
                     tile.setPosition(j * tileSize - offsetX, i * tileSize - offsetY);
                     window.draw(tile);
                 }
 
             }
             window.draw(man.sprite);  //Рисуем спрайт
+            if (man1.alive) window.draw(man1.sprite);
+            if (man2.alive) window.draw(man2.sprite);
+            if (man3.alive) window.draw(man3.sprite);
+            if (man4.alive) window.draw(man4.sprite);
+            if (man5.alive) window.draw(man5.sprite);
             window.display();//Выводим спрайт на экран
 
         }
