@@ -28,7 +28,7 @@ std::string TileMap[] =                             //Карта, закодированная симв
     "B               00           B     ",
     "B       B                    B     ",
     "B                       000  B     ",
-    "Bg    BP XXXXXXXBBXXXBB000H  B     ",
+    "Bg S  BP XXXXXXXBBXXXBB000H  B     ",
     "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     ",
     "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     ",
     "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB     ",
@@ -48,7 +48,7 @@ class Player // Класс игрока
     Direction lastLookDir;                      // Куда последний раз смотрел персонаж
     const int characterSizeX = 32;
     const int characterSizeY = 32;
-    const int characterNum = 0;
+    const int characterNum = 1;
     void SetupCamera()
     {
         if (!(rect.left > 300))
@@ -238,7 +238,7 @@ class BadPlayer // Класс игрока
     Direction lastLookDir;                      // Куда последний раз смотрел персонаж
     const int characterSizeX = 32;
     const int characterSizeY = 32;
-    const int characterNum = 3;
+    const int characterNum = 0;
 
     void Colision(Direction axisDir)            // Функция обработки коллизий, для разных координатных осей, 
                                                     // параметр принимает значение направления оси координат, и
@@ -433,6 +433,7 @@ int main()
     backMusic.play();
     musicTimer.restart();
 
+
     coinGet.loadFromFile("CoinSFX.ogg");
     jump.loadFromFile("JumpSFX.ogg");
     while (window.isOpen())
@@ -444,7 +445,6 @@ int main()
         }
         double time = timer.getElapsedTime().asMicroseconds();
         Event event;
-        timer.restart();
         if (window.pollEvent(event))       // window.pollEvent(event) ожидает событие 
         {
             if (event.type == Event::Closed) window.close();
@@ -693,7 +693,10 @@ int main()
             window.display();//Выводим спрайт на экран
 
         }
-
+        else
+        {
+        timer.restart();
+        }
 
     }
 

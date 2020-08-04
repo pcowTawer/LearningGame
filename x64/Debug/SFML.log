@@ -124,7 +124,7 @@ E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(360,1): warning 
 E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(397,58): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
 E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(397,38): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
 E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(407,26): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
-E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(445,21): warning C4244: инициализация: преобразование "sf::Int64" в "double", возможна потеря данных
+E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(446,21): warning C4244: инициализация: преобразование "sf::Int64" в "double", возможна потеря данных
 E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(540,79): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
 E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(540,55): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
 E:\Learning\Programming+robots\c++\MyProject\Traveller\main.cpp(545,85): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
